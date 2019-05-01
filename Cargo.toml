@@ -1,0 +1,8 @@
+[package]
+name = "uoinspect"
+version = "0.1.0"
+authors = ["Richard Ramsden <richard@rramsden.ca>"]
+edition = "2018"
+
+[dependencies]
+byteorder = "1"
