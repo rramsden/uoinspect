@@ -3,8 +3,10 @@ mod verdata;
 mod structs;
 mod gump;
 mod index;
+mod lookup;
 
 use std::path::Path;
+use std::env::args;
 
 fn main() {
     match std::env::args().nth(1) {
@@ -14,38 +16,52 @@ fn main() {
 }
 
 fn process_subcommand(cmd: String) {
+    let args: Vec<String> = args().collect();
+
     match &cmd[..] {
-        "parse" => {
-            match std::env::args().nth(2) {
-                Some(file_path) => parse(file_path),
-                None => println!("No filename given.")
-            }
-        },
+        "parse" => parse( &args ),
+        "lookup" => lookup( &args ),
         _ => println!("Unknown subcommand.")
     }
 }
 
-fn parse(file_path: String) {
-    let path = Path::new(&file_path[..]);
+fn check_missing(args: &Vec<String>, n: usize) {
+    if args.len() - 2 != n {
+        panic!("Expected {} arguments but received {}.", n, args.len() - 2 );
+    }
+}
+
+fn lookup(args: &Vec<String>) {
+    check_missing(args, 2);
+
+    let file_path = &args[2];
+    let entry_id = &args[3];
+
+    lookup::from_index(file_path, entry_id.parse::<usize>().unwrap())
+}
+
+fn parse(args: &Vec<String>) {
+    check_missing(args, 1);
+
+    let path = Path::new(&args[2]);
     let file_name = path
         .file_name().unwrap().to_str().unwrap().to_lowercase();
 
     match path.exists() {
         true => {
             match &file_name[..] {
-                "verdata.mul" => verdata::to_json(file_path),
+                "verdata.mul" => verdata::to_json(&args[2]),
                 _ => {
                     if file_name.ends_with("idx.mul") || file_name.ends_with("idx") {
-                        index::to_json(file_path);
+                        index::to_json(&args[2]);
                     } else {
                         println!("Sorry, we don't know how to process this file.")
                     }
                 }
-
             }
         
         },
-        false => println!("Could not find '{}'", file_path)
+        false => println!("Could not find '{}'", &args[2])
     }
 }
 
@@ -58,7 +74,8 @@ USAGE:
     uoinspect <SUBCOMMAND> <ARGUMENTS>
 
 SUBCOMMANDS:
-    json <FILENAME>         Export contents of a mul file to JSON
+    json <filename>              Export contents of a mul file to JSON
+    lookup <Filename> <EntryID>  Read binary contents using index file
 
     "#;
 

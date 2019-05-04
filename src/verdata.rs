@@ -30,7 +30,7 @@ fn file_map(num: i32) -> &'static str {
     }
 }
 
-pub fn to_json(file_name: String) {
+pub fn to_json(file_name: &str) {
     let mut buf: [u8; 4] = [0x00, 0x00, 0x00, 0x00];
     let mut file = File::open(file_name)
         .expect("Unable to open file");

@@ -5,7 +5,7 @@ use std::{
     io::{SeekFrom, Seek}
 };
 
-pub fn gump_lookup(lookup: u32) {
+pub fn lookup(lookup: u32) {
     let mut file = File::open("Gumpart.mul").
         expect("Unable to open file");
 
