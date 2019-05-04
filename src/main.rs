@@ -1,4 +1,10 @@
-mod parser;
+mod utils;
+mod verdata;
+mod structs;
+mod gump;
+mod index;
+
+use std::path::Path;
 
 fn main() {
     match std::env::args().nth(1) {
@@ -8,23 +14,38 @@ fn main() {
 }
 
 fn process_subcommand(cmd: String) {
-    match cmd.as_ref() {
+    match &cmd[..] {
         "parse" => {
             match std::env::args().nth(2) {
-                Some(file_name) => process_mul(file_name),
-                None => println!("No filename given")
+                Some(file_path) => parse(file_path),
+                None => println!("No filename given.")
             }
         },
-        _ => println!("Can't identify filename")
+        _ => println!("Unknown subcommand.")
     }
 }
 
-fn process_mul(file_name: String) {
-    match file_name.as_ref() {
-        "verdata.mul" => {
-            parser::verdata(file_name)
+fn parse(file_path: String) {
+    let path = Path::new(&file_path[..]);
+    let file_name = path
+        .file_name().unwrap().to_str().unwrap().to_lowercase();
+
+    match path.exists() {
+        true => {
+            match &file_name[..] {
+                "verdata.mul" => verdata::to_json(file_path),
+                _ => {
+                    if file_name.ends_with("idx.mul") || file_name.ends_with("idx") {
+                        index::to_json(file_path);
+                    } else {
+                        println!("Sorry, we don't know how to process this file.")
+                    }
+                }
+
+            }
+        
         },
-        _ => println!("This file is not supported")
+        false => println!("Could not find '{}'", file_path)
     }
 }
 
@@ -37,7 +58,7 @@ USAGE:
     uoinspect <SUBCOMMAND> <ARGUMENTS>
 
 SUBCOMMANDS:
-    parse <FILENAME>         Read contents of a mul file
+    json <FILENAME>         Export contents of a mul file to JSON
 
     "#;
 
